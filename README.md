@@ -1,42 +1,73 @@
-# un-truc
+# Un Truc - La Boîte à Outils Rétro-Uncanny
 
-This template should help get you started developing with Vue 3 in Vite.
+Bienvenue dans **Un Truc**, une boîte à outils web minimaliste au design system unique : le **"90s Cartoon Glitch"**. 
 
-## Recommended IDE Setup
+Ce projet mélange l'esthétique utilitaire des systèmes d'exploitation des années 90 (type Windows 95) avec un univers cartoonesque et des effets de "glitch" visuels.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Fonctionnalités
 
-## Recommended Browser Setup
+- **Design System Néobrutaliste** : Bordures épaisses, ombres pleines, coins carrés et palette de couleurs beige/bleu profond.
+- **Effets Glitch** : Animations de texte cyan/rouge lors des interactions.
+- **Catalogue d'Outils** : Une interface modulaire permettant d'ajouter et de lancer divers utilitaires.
+- **Responsive** : Adapté aux écrans modernes tout en gardant son âme rétro.
+- **Pages Intégrées** : Mentions légales sérieuses, politique de confidentialité (RGPD) et page de contact.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Outils Disponibles
 
-## Type Support for `.vue` Imports in TS
+- **Encodeur/Décodeur Base64** : Un utilitaire simple pour manipuler vos chaînes de caractères.
+- *(D'autres outils à venir...)*
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Installation & Développement
 
-## Customize configuration
+### Prérequis
+- Node.js (version 20.19.0 ou supérieure préconisée)
+- npm
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
+### Installation des dépendances
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
+### Lancer le serveur de développement
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
-
+### Compiler pour la production
 ```sh
 npm run build
 ```
+
+## 🏗️ Architecture
+
+Le projet suit un pattern de séparation entre la **logique (le cerveau)** et l'**interface (le dessin)** :
+
+- **Façade (`useAppFacade.ts`)** : Centralise l'état global et les méthodes métier (ex: presse-papier, gestion des pop-ups).
+- **Composants Visuels** : Restent purement déclaratifs et utilisent la façade pour interagir avec le système.
+
+### Utilisation de la Pop-up Globale
+
+N'importe quel composant ou outil peut afficher une alerte système sans gérer de HTML/CSS localement :
+
+```typescript
+import { useAppFacade } from '@/composables/useAppFacade'
+const { showPopup } = useAppFacade()
+
+showPopup("Attention !", "Ceci est un message système important.")
+```
+
+## Technologies
+
+- [Vue 3](https://vuejs.org/) (Composition API)
+- [Vite](https://vite.dev/)
+- [Sass (SCSS)](https://sass-lang.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vue Router](https://router.vuejs.org/)
+
+## Licence
+
+Ce projet est distribué sous la **Apache License, Version 2.0**. Voir le fichier `LICENSE` pour plus de détails.
+
+---
+© 2026 UN TRUC - TOUS DROITS RÉSERVÉS
+Contact : [contact@un-truc.fr](mailto:contact@un-truc.fr)

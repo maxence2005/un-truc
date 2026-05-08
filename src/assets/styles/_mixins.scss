@@ -1,0 +1,28 @@
+@use "variables" as *;
+
+@mixin glitch-effect {
+  text-shadow: -2px 0px 0px $glitch-cyan, 2px 0px 0px $glitch-red;
+}
+
+@mixin window-box {
+  background-color: $surface-pc-beige;
+  border: $border-width solid $black;
+  box-shadow: $window-shadow-size $window-shadow-size 0px 0px $black;
+  border-radius: 0;
+}
+
+@mixin checkerboard-bg {
+  background-color: $checkerboard-light;
+  background-image: 
+    linear-gradient(45deg, $checkerboard-dark 25%, transparent 25%, transparent 75%, $checkerboard-dark 75%, $checkerboard-dark),
+    linear-gradient(45deg, $checkerboard-dark 25%, transparent 25%, transparent 75%, $checkerboard-dark 75%, $checkerboard-dark);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+}
+
+@mixin inset-shadow-active {
+  &:active {
+    box-shadow: inset 3px 3px 0px 0px $black;
+    transform: translate(3px, 3px);
+  }
+}
