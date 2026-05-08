@@ -21,7 +21,7 @@ const getToolIdLabel = (index: number) => {
         </header>
         <div class="hero-content">
           <h1 class="glitch-text-permanent">UN TRUC</h1>
-          <p class="hero-subtitle">La boîte à outils rétro-uncanny</p>
+          <p class="hero-subtitle">La boîte à outils</p>
         </div>
       </div>
     </section>
@@ -55,7 +55,7 @@ const getToolIdLabel = (index: number) => {
         <RouterLink to="/contact" class="footer-link">Contact</RouterLink>
       </nav>
       <div class="footer-copyright">
-        © 1998-202X UN TRUC CORP - TOUS DROITS RÉSERVÉS
+        © 2026 UN TRUC - TOUS DROITS RÉSERVÉS
       </div>
     </footer>
   </main>
