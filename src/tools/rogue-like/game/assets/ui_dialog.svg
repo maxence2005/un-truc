@@ -1,0 +1,14 @@
+<svg width="580" height="100" viewBox="0 0 580 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main Window Frame (Win95) -->
+  <rect width="580" height="100" fill="#dbdbdb" />
+  <path d="M1 99 L1 1 L579 1" stroke="#ffffff" stroke-width="2" fill="none" />
+  <path d="M579 1 L579 99 L1 99" stroke="#808080" stroke-width="2" fill="none" />
+  
+  <!-- Title Bar -->
+  <rect x="4" y="4" width="572" height="18" fill="#000080" />
+  
+  <!-- Terminal Area (Inverted Bevel) -->
+  <rect x="4" y="26" width="572" height="70" fill="#000000" />
+  <path d="M4 96 L4 26 L576 26" stroke="#808080" stroke-width="2" fill="none" />
+  <path d="M576 26 L576 96 L4 96" stroke="#ffffff" stroke-width="2" fill="none" />
+</svg>

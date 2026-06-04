@@ -72,6 +72,8 @@ const getToolIdLabel = (index: number) => {
   flex-direction: column;
   align-items: center;
   gap: 64px;
+  position: relative;
+  min-height: 100vh;
 }
 
 .hero-section {
@@ -248,10 +250,35 @@ const getToolIdLabel = (index: number) => {
 }
 
 @media (max-width: 768px) {
+  .home-view {
+    padding: 16px;
+    padding-bottom: 64px;
+    gap: 32px;
+  }
+
+  .hero-content {
+    padding: 24px;
+    
+    h1 {
+      font-size: 2.5rem;
+    }
+  }
+
+  .catalogue-grid {
+    grid-template-columns: 1fr;
+  }
+
   .app-footer {
     position: static;
     flex-direction: column;
     text-align: center;
+    padding: 16px;
+    gap: 16px;
+    
+    .footer-nav {
+      flex-direction: column;
+      gap: 12px;
+    }
   }
 }
 </style>

@@ -1,0 +1,11 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Win95 Outer Frame (Beveled) -->
+  <rect width="120" height="40" fill="#dbdbdb" />
+  <path d="M1 39 L1 1 L119 1" stroke="#ffffff" stroke-width="2" fill="none" />
+  <path d="M119 1 L119 39 L1 39" stroke="#808080" stroke-width="2" fill="none" />
+  
+  <!-- Digital Screen Area (Inverted Bevel) -->
+  <rect x="5" y="5" width="110" height="30" fill="#000000" />
+  <path d="M5 35 L5 5 L115 5" stroke="#808080" stroke-width="1" fill="none" />
+  <path d="M115 5 L115 35 L5 35" stroke="#ffffff" stroke-width="1" fill="none" />
+</svg>

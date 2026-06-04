@@ -156,6 +156,12 @@ const copyLink = () => copyToClipboard(shareableLink.value)
   padding: 20px;
   gap: 20px;
   height: calc(100vh - 40px);
+
+  @media (max-width: 600px) {
+    padding: 10px;
+    height: calc(100vh - 20px);
+    gap: 10px;
+  }
 }
 
 .back-nav {
@@ -311,6 +317,10 @@ const copyLink = () => copyToClipboard(shareableLink.value)
   
   .text { font-size: 1rem; line-height: 1.4; word-break: break-word; }
   .time { font-size: 0.65rem; font-weight: bold; margin-top: 4px; display: block; text-align: right; }
+
+  @media (max-width: 600px) {
+    max-width: 85%;
+  }
 }
 
 .me .message-bubble {

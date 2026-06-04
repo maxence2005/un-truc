@@ -35,17 +35,26 @@ export function usePeerFacade(onDataReceived: (data: any) => void) {
 
     
     conn.on('data', (data: any) => {
+      if (data && data.type === 'PEER_DISCONNECT') {
+        isConnected.value = false
+        connection.value = null
+        showPopup('Info', "L'autre personne s'est déconnectée.")
+        conn.close()
+        return
+      }
       onDataReceived(data)
     })
 
     conn.on('close', () => {
       isConnected.value = false
+      connection.value = null
       showPopup('Info', "L'autre personne s'est déconnectée.")
     })
 
     conn.on('error', (err: any) => {
       console.error('Peer connection error:', err)
       isConnected.value = false
+      connection.value = null
       showPopup('Erreur P2P', 'Une erreur de connexion est survenue.')
     })
   }
@@ -87,9 +96,21 @@ export function usePeerFacade(onDataReceived: (data: any) => void) {
     }
   }
 
-  
+  const handleBeforeUnload = () => {
+    if (isConnected.value && connection.value) {
+      connection.value.send({ type: 'PEER_DISCONNECT' })
+      connection.value.close()
+    }
+    if (peer.value) {
+      peer.value.destroy()
+    }
+  }
+
+  window.addEventListener('beforeunload', handleBeforeUnload)
+
   onUnmounted(() => {
-    if (peer.value) peer.value.destroy()
+    window.removeEventListener('beforeunload', handleBeforeUnload)
+    handleBeforeUnload()
   })
 
   

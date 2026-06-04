@@ -136,6 +136,10 @@ const handleExplain = () => {
   align-items: center;
   padding: 20px;
   gap: 20px;
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 }
 
 .back-nav {
@@ -199,12 +203,20 @@ const handleExplain = () => {
 .tool-content {
   padding: 24px;
 
+  @media (max-width: 480px) {
+    padding: 16px;
+  }
+
   h2 {
     font-size: 1.5rem;
     margin-bottom: 24px;
     text-transform: uppercase;
     text-align: center;
     @include glitch-effect;
+
+    @media (max-width: 480px) {
+      font-size: 1.25rem;
+    }
   }
 }
 
@@ -280,6 +292,10 @@ const handleExplain = () => {
   border: $border-width solid $black;
   box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.2);
 
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+
   .result-header {
     font-size: 0.75rem;
     letter-spacing: 2px;
@@ -302,6 +318,10 @@ const handleExplain = () => {
     .value {
       font-weight: bold;
       font-size: 1.25rem;
+
+      @media (max-width: 480px) {
+        font-size: 1.1rem;
+      }
     }
 
     &.total {
@@ -312,11 +332,19 @@ const handleExplain = () => {
       span:first-child {
         font-size: 1.125rem;
         font-weight: 900;
+
+        @media (max-width: 480px) {
+          font-size: 1rem;
+        }
       }
 
       .value {
         font-size: 1.75rem;
         color: $glitch-cyan;
+
+        @media (max-width: 480px) {
+          font-size: 1.4rem;
+        }
       }
     }
   }
