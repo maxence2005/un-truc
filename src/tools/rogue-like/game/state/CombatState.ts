@@ -2,6 +2,14 @@ import { ALL_SKILLS, type Skill } from '../data/SkillRegistry';
 import { MONSTERS, type MonsterTemplate } from '../data/MonsterRegistry';
 import { type CharacterStats, DEFAULT_PLAYER_STATS } from '../data/Stats';
 import { type ActiveStatus, STATUS_TEMPLATES, type StatusId } from '../data/StatusRegistry';
+import Phaser from 'phaser';
+
+export interface StatUpgrade {
+    name: string;
+    desc: string;
+    statKey: string;
+    value: number;
+}
 
 export class CombatState {
     public score = 0;
@@ -127,5 +135,47 @@ export class CombatState {
             ...template,
             stats: { ...template.stats }
         };
+    }
+
+    // --- RECOMPENSES LOGIQUE ---
+    public isRewardScore(): boolean {
+        const s = this.score;
+        if (s === 2 || s === 3 || s === 4 || s === 5) return true;
+        if (s > 5 && s % 5 === 0) return true;
+        return false;
+    }
+
+    public getNextRewardScore(): number {
+        const s = this.score;
+        if (s < 2) return 2;
+        if (s === 2) return 3;
+        if (s === 3) return 4;
+        if (s === 4) return 5;
+        return Math.floor(s / 5) * 5 + 5;
+    }
+
+    public getRandomThreeStatUpgrades(): StatUpgrade[] {
+        const pool: StatUpgrade[] = [
+            { name: '🔋 VITALITE.SYS', desc: 'PV Max +20 points (soigne d\'autant).', statKey: 'hp_max', value: 20 },
+            { name: '⚔️ POWER_ATT.EXE', desc: 'Attaque Physique +5 points.', statKey: 'att', value: 5 },
+            { name: '🔮 MAGIC_ATT.EXE', desc: 'Attaque Magique +5 points.', statKey: 'att_magic', value: 5 },
+            { name: '🛡️ DEF_PHYS.SYS', desc: 'Défense Physique +4 points.', statKey: 'def_phys', value: 4 },
+            { name: '🛡️ DEF_MAGIC.SYS', desc: 'Défense Magique +4 points.', statKey: 'def_magic', value: 4 },
+            { name: '⚡ OVERCLOCK.EXE', desc: 'Vitesse +3 points.', statKey: 'speed', value: 3 },
+            { name: '🎯 CRIT_BOOST.SYS', desc: 'Taux de Critique +5%.', statKey: 'crit_rate', value: 0.05 },
+            { name: '💨 EVASION.EXE', desc: 'Agilité (esquive) +4%.', statKey: 'agility', value: 0.04 }
+        ];
+        // Utiliser la fonction de shuffle Phaser
+        return Phaser.Utils.Array.Shuffle(pool).slice(0, 3);
+    }
+
+    public applyStatUpgrade(statKey: string, value: number) {
+        if (statKey === 'hp_max') {
+            this.playerMaxHp += value;
+            this.playerHp += value;
+        }
+        
+        const key = statKey as keyof CharacterStats;
+        this.playerStats[key] = (this.playerStats[key] || 0) + value;
     }
 }

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 export class PlaylistManager {
     private static musicStarted = false;
     private static currentMusicIndex = 0;
-    private static readonly MUSIC_KEYS = ['music1', 'music2', 'music3', 'music4'];
+    private static readonly MUSIC_KEYS = ['music1', 'music2', 'music3'];
 
     public static start(scene: Phaser.Scene) {
         if (!this.musicStarted) {

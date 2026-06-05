@@ -1,5 +1,5 @@
 import { Scene } from 'phaser';
-import { CombatState } from '../state/CombatState';
+import { CombatState, type StatUpgrade } from '../state/CombatState';
 import { CharacterVisual } from '../ui/CharacterVisual';
 import { SkillsLayout } from '../ui/SkillsLayout';
 import { StatsSidebar } from '../ui/StatsSidebar';
@@ -22,6 +22,7 @@ export class DuelScene extends Scene {
     private heroSetup!: GeneratedHero;
     private logText!: Phaser.GameObjects.Text;
     private scoreText!: Phaser.GameObjects.Text;
+    private nextRewardText!: Phaser.GameObjects.Text;
     
     private isTweening = false;
     private isChoosing = true;
@@ -51,7 +52,7 @@ export class DuelScene extends Scene {
 
         this.add.image(0, 0, 'background').setOrigin(0).setDisplaySize(960, 640);
 
-        // Logs panel
+        // Panneau de logs
         const dialogContainer = this.add.container(360, 550);
         const dialogBg = this.add.image(0, 0, 'ui_dialog').setDisplaySize(700, 160);
         const dialogTitle = this.add.text(-335, -68, ' SYSTEM_LOG.EXE', { 
@@ -63,13 +64,23 @@ export class DuelScene extends Scene {
         });
         dialogContainer.add([dialogBg, dialogTitle, this.logText]);
 
-        // Score display
+        // Affichage du score
         const scoreContainer = this.add.container(640, 45);
         const scoreBg = this.add.image(0, 0, 'ui_score');
         this.scoreText = this.add.text(0, 0, 'SCORE: 0', {
             fontFamily: 'Impact, sans-serif', fontSize: '20px', color: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);
         scoreContainer.add([scoreBg, this.scoreText]);
+
+        // Indicateur de prochaine récompense
+        this.nextRewardText = this.add.text(640, 100, '', {
+            fontFamily: 'Courier New, Courier, monospace',
+            fontSize: '11px',
+            color: '#00ff00',
+            fontStyle: 'bold',
+            backgroundColor: '#000000',
+            padding: { x: 6, y: 3 }
+        }).setOrigin(0.5);
 
         this.sidebar = new StatsSidebar(this, 840);
         this.playerVisual = new CharacterVisual(this, 220, 260, this.heroSetup.assetKey);
@@ -96,17 +107,19 @@ export class DuelScene extends Scene {
             () => {
                 this.isChoosing = false;
                 this.isTweening = false;
-                this.logText.setText(this.logText.text + `\nMonstre terrassé !\nUn nouveau ${this.state.currentMonster.name} approche...`);
                 
-                if (Object.keys(this.state.skills).length < 4) {
-                    this.showSkillDraftOptions();
+                // Si le score actuel correspond à un draft/reward
+                if (this.state.isRewardScore()) {
+                    this.showRewardDraftOptions(false); // isFirstChoice = false
+                } else {
+                    this.logText.setText(this.logText.text + `\nMonstre terrassé !\nUn nouveau ${this.state.currentMonster.name} approche...`);
                 }
             },
             () => this.refreshInterfaceDisplay()
         );
 
         this.refreshInterfaceDisplay();
-        this.showSkillDraftOptions();
+        this.showRewardDraftOptions(true); // Premier choix de compétence (isFirstChoice = true)
 
         this.input.keyboard?.on('keydown', (e: KeyboardEvent) => {
             if (this.isTweening || this.isChoosing || this.state.playerHp <= 0) return;
@@ -126,10 +139,9 @@ export class DuelScene extends Scene {
             this.state.currentMonster.name
         );
         
-        // Mise à jour des badges de statuts sur les combattants (à gauche pour le joueur, à droite pour le monstre)
         this.playerVisual.updateStatusEffects(this.state.playerStatuses, true, (s) => this.showStatusTooltip(s, 'HÉROS'), () => this.hideSkillTooltip());
         this.monsterVisual.updateStatusEffects(this.state.monsterStatuses, false, (s) => this.showStatusTooltip(s, this.state.currentMonster.name.toUpperCase()), () => this.hideSkillTooltip());
-
+        
         this.sidebar.updatePlayerSkills(
             this.state.skills,
             (skill) => this.showSkillTooltip(skill, this.heroSetup.name.toUpperCase()),
@@ -141,6 +153,11 @@ export class DuelScene extends Scene {
             (skill) => this.showSkillTooltip(skill, this.state.currentMonster.name.toUpperCase()),
             () => this.hideSkillTooltip()
         );
+
+        // Rafraîchir l'affichage du prochain draft
+        const nextScore = this.state.getNextRewardScore();
+        const diff = nextScore - this.state.score;
+        this.nextRewardText.setText(`NEXT_REWARD: -${diff} ROUNDS`);
     }
 
     private showSkillTooltip(skill: Skill, ownerLabel: string) {
@@ -159,21 +176,21 @@ export class DuelScene extends Scene {
         this.logText.setText(this.lastLogMessage);
     }
 
-    private showSkillDraftOptions() {
+    private showRewardDraftOptions(isFirstChoice: boolean) {
         this.isChoosing = true;
-        const currentSlotIndex = Object.keys(this.state.skills).length;
-        const currentArrowKey = this.state.slotOrder[currentSlotIndex]!;
         
-        const arrowSymbols: Record<string, string> = { 
-            ArrowUp: 'HAUT (▲)', ArrowRight: 'DROITE (▶)', ArrowDown: 'BAS (▼)', ArrowLeft: 'GAUCHE (◀)' 
-        };
-
-        this.logText.setText(`[SYSTEM] Choisissez une compétence pour votre touche : ${arrowSymbols[currentArrowKey]}`);
+        if (isFirstChoice) {
+            this.logText.setText(`[SYSTEM] Choisissez votre première compétence pour démarrer !`);
+        } else {
+            this.logText.setText(`[SYSTEM] Récompense disponible ! Choisissez une Capacité ou améliorez une Stat.`);
+        }
 
         this.choiceContainer = DraftManager.show(
             this,
             this.state.skills,
-            (skill) => this.selectDraftedSkill(currentArrowKey, skill)
+            isFirstChoice,
+            (arrowKey, skill) => this.selectDraftedSkill(arrowKey, skill),
+            (upgrade) => this.selectStatUpgrade(upgrade)
         );
     }
 
@@ -192,6 +209,19 @@ export class DuelScene extends Scene {
         this.refreshInterfaceDisplay();
         this.isChoosing = false;
         this.isTweening = false;
-        this.logText.setText(`Compétence [${skill.name}] assignée ! À vous de jouer.`);
+        this.logText.setText(`Compétence [${skill.name}] assignée à [${arrowKey}] ! À vous de jouer.`);
+    }
+
+    private selectStatUpgrade(upgrade: StatUpgrade) {
+        this.state.applyStatUpgrade(upgrade.statKey, upgrade.value);
+
+        if (this.choiceContainer) {
+            this.choiceContainer = null;
+        }
+
+        this.refreshInterfaceDisplay();
+        this.isChoosing = false;
+        this.isTweening = false;
+        this.logText.setText(`Mise à niveau [${upgrade.name}] installée ! À vous de jouer.`);
     }
 }

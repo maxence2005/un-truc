@@ -36,10 +36,9 @@ export class Preloader {
             scene.load.svg(filename!, URL.createObjectURL(blob));
         });
 
-        // Chargement des 4 musiques
+        // Chargement des 3 musiques
         scene.load.audio('music1', '/music.mp3');
         scene.load.audio('music2', '/music2.mp3');
         scene.load.audio('music3', '/music3.mp3');
-        scene.load.audio('music4', '/music4.mp3');
     }
 }
