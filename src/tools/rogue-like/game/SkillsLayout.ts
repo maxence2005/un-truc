@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Skill } from './CombatState';
+import type { Skill } from './data/SkillRegistry';
 
 export class SkillsLayout {
     private scene: Phaser.Scene;
@@ -11,72 +11,65 @@ export class SkillsLayout {
         this.scene = scene;
         this.container = scene.add.container(playerX, playerY);
 
-        // Configuration asymétrique pour éviter de chevaucher la barre de vie sous le personnage
+        // Configuration du placement des 4 touches autour du joueur
         const layoutConfig = [
-            { key: 'ArrowUp',    x: 0,    y: -75,  texture: 'icon_up' },    // Plus proche du haut
-            { key: 'ArrowDown',  x: 0,    y: 115,  texture: 'icon_down' },  // Repoussée sous la barre de PV
-            { key: 'ArrowLeft',  x: -100,  y: 15,   texture: 'icon_left' },  // Serrée à gauche
-            { key: 'ArrowRight', x: 100,   y: 15,   texture: 'icon_right' }  // Serrée à droite
+            { key: 'ArrowUp',    x: 0,    y: -75,  arrowIcon: 'arrow_up' },
+            { key: 'ArrowDown',  x: 0,    y: 115,  arrowIcon: 'arrow_down' },
+            { key: 'ArrowLeft',  x: -100,  y: 15,   arrowIcon: 'arrow_left' },
+            { key: 'ArrowRight', x: 100,   y: 15,   arrowIcon: 'arrow_right' }
         ];
 
         layoutConfig.forEach(cfg => {
             const skill = skills[cfg.key];
-            
-            // REGLAGE : Si la compétence n'est pas encore draftée pour cette flèche, on passe au suivant
-            if (!skill) return;
-            
-            // Fond de la case
-            const btnBg = scene.add.rectangle(cfg.x, cfg.y, 44, 44, 0x111111).setStrokeStyle(2, 0xffffff);
-            
-            // Icône SVG
-            const btnIcon = scene.add.image(cfg.x, cfg.y, cfg.texture);
-            btnIcon.setScale(0.8);
+            if (!skill) return; // Si le slot n'est pas encore débloqué, on passe
 
-            // Placement intelligent des textes descriptifs
-            let labelY = cfg.y + 34; // Par défaut en dessous
+            // 1. Fond de la case (Agrandie un peu pour le confort visuel : 48x48)
+            const btnBg = scene.add.rectangle(cfg.x, cfg.y, 48, 48, 0x111111).setStrokeStyle(2, 0xffffff);
+
+            // 2. Icône personnalisée de la compétence (Chargée dynamiquement)
+            const skillTextureKey = `skill_${skill.iconKey}`;
+            const btnIcon = scene.add.image(cfg.x, cfg.y, skillTextureKey);
+            btnIcon.setDisplaySize(34, 34); // On adapte la taille du SVG dans le bouton
+
+            // 3. Mini-indicateur de direction (badge dans le coin supérieur gauche du bouton)
+            const miniArrow = scene.add.image(cfg.x - 14, cfg.y - 14, cfg.arrowIcon);
+            miniArrow.setDisplaySize(14, 14).setAlpha(0.8);
+
+            // 4. Texte sous/sur le bouton
+            let labelY = cfg.y + 36;
             if (cfg.key === 'ArrowUp') {
-                labelY = cfg.y - 34; // Pour le haut, on met le texte au-dessus
+                labelY = cfg.y - 36;
             }
-
             const label = scene.add.text(cfg.x, labelY, skill.name, {
                 fontFamily: 'Courier New', fontSize: '11px', color: '#ffffff', fontStyle: 'bold'
             }).setOrigin(0.5);
 
-            // On stocke la référence du fond pour l'animation plus tard
+            // Stockage pour l'animation de flash lors de l'appui
             this.skillButtons[cfg.key] = btnBg;
 
-            this.container.add([btnBg, btnIcon, label]);
+            // Ajout de tous les éléments au conteneur Phaser
+            this.container.add([btnBg, btnIcon, miniArrow, label]);
         });
     }
 
-    /**
-     * Déclenche une animation visuelle (flash de sélection) sur la compétence choisie
-     */
     public playSelectionAnimation(key: string, originalColor: number = 0x111111) {
         const btnBg = this.skillButtons[key];
         if (!btnBg) return;
 
-        // On fait flasher le fond en blanc très vite, en augmentant un peu sa taille
         this.scene.tweens.add({
             targets: btnBg,
-            scale: 1.25,              // Effet de zoom sur la case
-            fillColor: 0xffffff,     // Devient blanche
+            scale: 1.25,
+            fillColor: 0xffffff,
             duration: 80,
-            yoyo: true,              // Revient à l'état initial
+            yoyo: true,
             ease: 'Quad.easeOut',
             onComplete: () => {
-                // Sécurité pour remettre la couleur d'origine
                 btnBg.fillColor = originalColor;
                 btnBg.setScale(1);
             }
         });
     }
 
-    public setVisible(visible: boolean) {
-        this.container.setVisible(visible);
-    }
-
-    public destroy() {
-        this.container.destroy();
-    }
+    public setVisible(visible: boolean) { this.container.setVisible(visible); }
+    public destroy() { this.container.destroy(); }
 }

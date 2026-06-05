@@ -1,14 +1,8 @@
-export interface Skill {
-    name: string;
-    damage: number;
-    heal: number;
-    desc: string;
-}
-
-export interface MonsterData {
-    name: string;
-    assetKey: string;
-}
+// src/tools/rogue-like/game/CombatState.ts
+import { ALL_SKILLS, type Skill } from './data/SkillRegistry';
+import { MONSTERS, type MonsterTemplate } from './data/MonsterRegistry';
+import { type CharacterStats, DEFAULT_PLAYER_STATS } from './data/Stats';
+import { type ActiveStatus, STATUS_TEMPLATES, type StatusId } from './data/StatusRegistry';
 
 export class CombatState {
     public score = 0;
@@ -16,36 +10,74 @@ export class CombatState {
     public playerMaxHp = 100;
     public monsterHp = 50;
     public monsterMaxHp = 50;
-    public currentMonster!: MonsterData;
+    public currentMonster!: MonsterTemplate;
     
+    // Statistiques actives du joueur (permettant des bonus futurs)
+    public playerStats: CharacterStats = { ...DEFAULT_PLAYER_STATS };
+
     // Commence vide, se remplit au fil des monstres tués
     public skills: Record<string, Skill> = {};
+
+    // Enregistre le nombre de fois qu'une compétence a été lancée
+    public skillUsage: Record<string, number> = {};
 
     // Ordre de déblocage des flèches au fil des rounds
     public readonly slotOrder = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
 
-    private readonly monsters: MonsterData[] = [
-        { name: 'Tigre Pixel', assetKey: 'monster_tiger' },
-        { name: 'Slime Gluant', assetKey: 'monster_slime' },
-        { name: 'Robot Cyber', assetKey: 'monster_robot' },
-        { name: 'Fantôme Code', assetKey: 'monster_ghost' },
-        { name: 'Démon Bug', assetKey: 'monster_demon' }
-    ];
-
-    // Banque globale de toutes les compétences possibles du jeu
-    public static readonly ALL_SKILLS: Skill[] = [
-        { name: 'Sabre Laser', damage: 18, heal: 0, desc: 'Dégâts d\'énergie stables' },
-        { name: 'Nano-Soin', damage: 0, heal: 25, desc: 'Te soigne de 25 PV' },
-        { name: 'Coup Critique', damage: 35, heal: 0, desc: 'Gros dégâts (50% de chance d\'échec)' },
-        { name: 'Drain de Vie', damage: 10, heal: 12, desc: 'Vole des PV à l\'ennemi' },
-        { name: 'Surcharge', damage: 25, heal: 0, desc: 'Dégâts lourds' },
-        { name: 'Bouclier Réactif', damage: 8, heal: 6, desc: 'Petite attaque + petit soin' },
-        { name: 'Onde de Choc', damage: 15, heal: 0, desc: 'Frappe l\'ennemi au sol' },
-        { name: 'Laser Plasma', damage: 22, heal: 0, desc: 'Brûle la cible' }
-    ];
+    // --- TRACKING DES STATUTS ---
+    public playerStatuses: ActiveStatus[] = [];
+    public monsterStatuses: ActiveStatus[] = [];
 
     constructor() {
         this.pickRandomMonster();
+        this.monsterMaxHp = this.currentMonster.stats.hp_max;
+        this.monsterHp = this.monsterMaxHp;
+        this.applyMonsterStartStatuses();
+    }
+
+    private applyMonsterStartStatuses() {
+        if (this.currentMonster.startStatuses) {
+            this.currentMonster.startStatuses.forEach(s => {
+                const template = STATUS_TEMPLATES[s.id];
+                this.monsterStatuses.push({
+                    id: s.id,
+                    name: template.name,
+                    desc: template.desc,
+                    iconKey: template.iconKey,
+                    stacks: s.stacks,
+                    isInfinite: s.isInfinite
+                });
+            });
+        }
+    }
+
+    public addStatus(target: 'player' | 'monster', statusId: StatusId, amount: number) {
+        const list = target === 'player' ? this.playerStatuses : this.monsterStatuses;
+        const template = STATUS_TEMPLATES[statusId];
+        const existing = list.find(s => s.id === statusId);
+
+        if (existing) {
+            existing.stacks += amount;
+            if (template.maxStacks && existing.stacks > template.maxStacks) {
+                existing.stacks = template.maxStacks;
+            }
+        } else {
+            list.push({ 
+                id: statusId, 
+                name: template.name, 
+                desc: template.desc, 
+                iconKey: template.iconKey, 
+                stacks: amount 
+            });
+        }
+    }
+
+    public removeStatus(target: 'player' | 'monster', statusId: StatusId) {
+        if (target === 'player') {
+            this.playerStatuses = this.playerStatuses.filter(s => s.id !== statusId);
+        } else {
+            this.monsterStatuses = this.monsterStatuses.filter(s => s.id !== statusId);
+        }
     }
 
     /**
@@ -53,7 +85,7 @@ export class CombatState {
      */
     public getRandomThreeChoices(): Skill[] {
         const ownedSkillNames = Object.values(this.skills).map(s => s.name);
-        const availableSkills = CombatState.ALL_SKILLS.filter(s => !ownedSkillNames.includes(s.name));
+        const availableSkills = ALL_SKILLS.filter(s => !ownedSkillNames.includes(s.name));
         
         const shuffled = [...availableSkills].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, 3);
@@ -75,13 +107,26 @@ export class CombatState {
 
     public setupNextMonster() {
         this.score += 1;
-        this.monsterMaxHp += 15;
-        this.monsterHp = this.monsterMaxHp;
         this.pickRandomMonster();
+        // Équilibrage progressif basé sur le score
+        this.monsterMaxHp = this.currentMonster.stats.hp_max + (this.score * 15);
+        this.monsterHp = this.monsterMaxHp;
+        // Aligner la stat hp_max clonée pour l'affichage de la sidebar
+        this.currentMonster.stats.hp_max = this.monsterMaxHp;
+        
+        // On nettoie les statuts à la fin d'un combat
+        this.playerStatuses = [];
+        this.monsterStatuses = [];
+
+        this.applyMonsterStartStatuses();
     }
 
     private pickRandomMonster() {
-        const randomIndex = Math.floor(Math.random() * this.monsters.length);
-        this.currentMonster = this.monsters[randomIndex] as MonsterData;
+        const randomIndex = Math.floor(Math.random() * MONSTERS.length);
+        const template = MONSTERS[randomIndex] as MonsterTemplate;
+        this.currentMonster = {
+            ...template,
+            stats: { ...template.stats }
+        };
     }
 }

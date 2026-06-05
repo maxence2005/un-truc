@@ -62,7 +62,7 @@ onUnmounted(() => {
 
 .back-nav {
   width: 100%;
-  max-width: 800px;
+  max-width: 1040px; /* max-width augmenté à 1040px pour l'écran élargi */
 }
 
 .btn-back {
@@ -86,7 +86,7 @@ onUnmounted(() => {
 .game-window {
   @include window-box;
   width: 100%;
-  max-width: 800px;
+  max-width: 1040px; /* max-width augmenté à 1040px pour l'écran élargi */
   display: flex;
   flex-direction: column;
   background-color: $workspace-off-white;
@@ -105,7 +105,7 @@ onUnmounted(() => {
 }
 
 .game-content {
-  padding: 16px; 
+  padding: 12px; 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -115,8 +115,8 @@ onUnmounted(() => {
 
 .phaser-container {
   width: 100%;
-  max-width: 900px; /* Augmenté pour mieux remplir l'écran */
-  aspect-ratio: 4 / 3; /* Résout le bug d'agrandissement infini */
+  max-width: 960px; /* Nouvelle définition */
+  aspect-ratio: 3 / 2; /* Ratio idéal pour 960x640 */
   border: 4px solid $black;
   box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.15);
   overflow: hidden;

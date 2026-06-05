@@ -19,7 +19,7 @@ export class CharacterVisual {
 
         // 2. Interface (Barre de vie) sous le personnage
         const barBg = scene.add.rectangle(0, 55, 90, 12, 0x333333).setStrokeStyle(1, 0x000000);
-        const barColor = textureKey === 'hero_svg' ? 0x00ff00 : 0xff003c;
+        const barColor = textureKey.startsWith('monster_') ? 0xff003c : 0x00ff00;
         
         this.hpBar = scene.add.rectangle(-45, 55, 90, 12, barColor).setOrigin(0, 0.5);
         this.hpText = scene.add.text(-45, 68, '', { fontFamily: 'Courier New', fontSize: '12px', color: '#ffffff' });
