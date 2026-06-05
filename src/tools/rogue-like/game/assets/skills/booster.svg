@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Booster rocket body -->
+  <rect x="12" y="4" width="8" height="14" fill="#888888" stroke="#ffffff" stroke-width="1.5"/>
+  <polygon points="12,4 16,0 20,4" fill="#ff0055"/>
+  <!-- Fire tail -->
+  <polygon points="10,18 22,18 16,32" fill="#ffaa00" stroke="#ff0000" stroke-width="1"/>
+  <polygon points="13,18 19,18 16,28" fill="#ffff00"/>
+</svg>

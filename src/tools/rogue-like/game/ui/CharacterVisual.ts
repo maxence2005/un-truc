@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { type ActiveStatus } from '../data/StatusRegistry';
 
 export class CharacterVisual {
     private scene: Phaser.Scene;
@@ -6,6 +7,7 @@ export class CharacterVisual {
     private image: Phaser.GameObjects.Image; // On utilise un composant Image classique
     private hpBar: Phaser.GameObjects.Rectangle;
     private hpText: Phaser.GameObjects.Text;
+    private statusIconsContainer: Phaser.GameObjects.Container | null = null;
 
     constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string) {
         this.scene = scene;
@@ -35,6 +37,50 @@ export class CharacterVisual {
         this.hpText.setText(`${current}/${max} PV`);
         const ratio = Math.max(0, current / max);
         this.hpBar.setScale(ratio, 1);
+    }
+
+    public updateStatusEffects(
+        activeStatuses: ActiveStatus[],
+        isLeftAligned: boolean,
+        onHover: (status: ActiveStatus) => void,
+        onOut: () => void
+    ) {
+        if (this.statusIconsContainer) {
+            this.statusIconsContainer.destroy();
+        }
+        
+        this.statusIconsContainer = this.scene.add.container(0, 0);
+        this.container.add(this.statusIconsContainer);
+
+        const xOffset = isLeftAligned ? -75 : 75;
+
+        activeStatuses.forEach((status, index) => {
+            const posY = -45 + (index * 30); // Alignement vertical
+
+            const badgeBg = this.scene.add.rectangle(xOffset, posY, 22, 22, 0x222222)
+                .setStrokeStyle(1, 0x000000)
+                .setInteractive({ cursor: 'pointer' });
+
+            const badgeIcon = this.scene.add.image(xOffset, posY, status.iconKey).setDisplaySize(16, 16);
+
+            const displayStacks = status.isInfinite ? '∞' : `${status.stacks}`;
+            const stackTxt = this.scene.add.text(xOffset + 5, posY + 4, displayStacks, {
+                fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#ffea00',
+                backgroundColor: '#000000', padding: { x: 2, y: 1 }
+            }).setOrigin(0.5);
+
+            this.statusIconsContainer!.add([badgeBg, badgeIcon, stackTxt]);
+
+            badgeBg.on('pointerover', () => {
+                badgeBg.setStrokeStyle(1.5, isLeftAligned ? 0x00eaff : 0xff4d4d);
+                onHover(status);
+            });
+
+            badgeBg.on('pointerout', () => {
+                badgeBg.setStrokeStyle(1, 0x000000);
+                onOut();
+            });
+        });
     }
 
     public playAttackAnimation(targetX: number, onImpact: () => void) {
@@ -74,5 +120,9 @@ export class CharacterVisual {
 
     public resetVisual() {
         this.container.setAlpha(1).setScale(1).setAngle(0);
+        if (this.statusIconsContainer) {
+            this.statusIconsContainer.destroy();
+            this.statusIconsContainer = null;
+        }
     }
 }

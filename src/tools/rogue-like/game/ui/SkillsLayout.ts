@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Skill } from './data/SkillRegistry';
+import type { Skill } from '../data/SkillRegistry';
 
 export class SkillsLayout {
     private scene: Phaser.Scene;
@@ -13,11 +13,15 @@ export class SkillsLayout {
 
         // Configuration du placement des 4 touches autour du joueur
         const layoutConfig = [
-            { key: 'ArrowUp',    x: 0,    y: -75,  arrowIcon: 'arrow_up' },
-            { key: 'ArrowDown',  x: 0,    y: 115,  arrowIcon: 'arrow_down' },
-            { key: 'ArrowLeft',  x: -100,  y: 15,   arrowIcon: 'arrow_left' },
-            { key: 'ArrowRight', x: 100,   y: 15,   arrowIcon: 'arrow_right' }
+            { key: 'ArrowUp',    x: 0,    y: -75 },
+            { key: 'ArrowDown',  x: 0,    y: 115 },
+            { key: 'ArrowLeft',  x: -100,  y: 15 },
+            { key: 'ArrowRight', x: 100,   y: 15 }
         ];
+
+        const arrowSymbols: Record<string, string> = { 
+            ArrowUp: '▲', ArrowDown: '▼', ArrowLeft: '◀', ArrowRight: '▶' 
+        };
 
         layoutConfig.forEach(cfg => {
             const skill = skills[cfg.key];
@@ -31,9 +35,15 @@ export class SkillsLayout {
             const btnIcon = scene.add.image(cfg.x, cfg.y, skillTextureKey);
             btnIcon.setDisplaySize(34, 34); // On adapte la taille du SVG dans le bouton
 
-            // 3. Mini-indicateur de direction (badge dans le coin supérieur gauche du bouton)
-            const miniArrow = scene.add.image(cfg.x - 14, cfg.y - 14, cfg.arrowIcon);
-            miniArrow.setDisplaySize(14, 14).setAlpha(0.8);
+            // 3. Mini-indicateur de direction textuel (badge dans le coin supérieur gauche du bouton)
+            const keyLabel = scene.add.text(cfg.x - 20, cfg.y - 20, arrowSymbols[cfg.key] || '', {
+                fontFamily: 'Arial',
+                fontSize: '10px',
+                fontStyle: 'bold',
+                color: '#ffea00',
+                backgroundColor: '#000000',
+                padding: { x: 3, y: 1 }
+            }).setOrigin(0);
 
             // 4. Texte sous/sur le bouton
             let labelY = cfg.y + 36;
@@ -48,7 +58,7 @@ export class SkillsLayout {
             this.skillButtons[cfg.key] = btnBg;
 
             // Ajout de tous les éléments au conteneur Phaser
-            this.container.add([btnBg, btnIcon, miniArrow, label]);
+            this.container.add([btnBg, btnIcon, keyLabel, label]);
         });
     }
 

@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { type CharacterStats } from '../data/Stats';
 import { type Skill } from '../data/SkillRegistry';
-import { type ActiveStatus } from '../data/StatusRegistry';
 
 export class StatsSidebar {
     private scene: Phaser.Scene;
@@ -12,10 +11,6 @@ export class StatsSidebar {
     // Grilles d'icônes séparées pour le joueur et le monstre
     private playerSkillIcons: Phaser.GameObjects.Image[] = [];
     private monsterSkillIcons: Phaser.GameObjects.Image[] = [];
-
-    // Conteneurs de statuts distincts pour les futurs buffs/debuffs
-    public playerStatusContainer!: Phaser.GameObjects.Container;
-    public monsterStatusContainer!: Phaser.GameObjects.Container;
 
     constructor(scene: Phaser.Scene, x: number) {
         this.scene = scene;
@@ -28,7 +23,7 @@ export class StatsSidebar {
         const slotOffsets = [-60, -20, 20, 60];
 
         // ==========================================
-        // L'ESPACE DU HÉROS (Y: 45 à 275)
+        // L'ESPACE DU HÉROS
         // ==========================================
         this.scene.add.text(x - 95, 45, '--- HERO STATS ---', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#000000' });
         let currentY = 62;
@@ -44,13 +39,8 @@ export class StatsSidebar {
             return this.scene.add.image(x + offset, 225, '').setDisplaySize(24, 24).setOrigin(0.5);
         });
 
-        // Zone de statuts du Héros
-        this.scene.add.text(x - 95, 248, '🧪 HERO STATUS', { fontFamily: 'Courier New', fontSize: '10px', fontStyle: 'bold', color: '#006600' });
-        this.playerStatusContainer = this.scene.add.container(x - 95, 265);
-        this.createEmptyStatusSlots(x, 270);
-
         // ==========================================
-        // L'ESPACE DU MONSTRE (Y: 300 à 630)
+        // L'ESPACE DU MONSTRE
         // ==========================================
         this.monsterNameText = this.scene.add.text(x - 95, 310, '--- MONSTER ---', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#990000' });
         currentY = 328;
@@ -64,18 +54,6 @@ export class StatsSidebar {
         this.monsterSkillIcons = slotOffsets.map(offset => {
             this.scene.add.rectangle(x + offset, 490, 30, 30, 0x221111).setStrokeStyle(1, 0xffcccc);
             return this.scene.add.image(x + offset, 490, '').setDisplaySize(24, 24).setOrigin(0.5);
-        });
-
-        // Zone de statuts du Monstre
-        this.scene.add.text(x - 95, 515, '🧪 MONSTER STATUS', { fontFamily: 'Courier New', fontSize: '10px', fontStyle: 'bold', color: '#006600' });
-        this.monsterStatusContainer = this.scene.add.container(x - 95, 532);
-        this.createEmptyStatusSlots(x, 537);
-    }
-
-    private createEmptyStatusSlots(baseX: number, y: number) {
-        const slotOffsets = [-60, -24, 12, 48];
-        slotOffsets.forEach(offset => {
-            this.scene.add.rectangle(baseX + offset, y + 12, 28, 28, 0xb8b8b8).setStrokeStyle(1, 0x808080);
         });
     }
 
@@ -122,52 +100,5 @@ export class StatsSidebar {
         } else {
             icon.setAlpha(0).disableInteractive();
         }
-    }
-
-    public drawStatusEffects(
-        target: 'player' | 'monster', 
-        activeStatuses: ActiveStatus[],
-        onHover: (status: ActiveStatus) => void,
-        onOut: () => void
-    ) {
-        // Choix du conteneur adéquat
-        const container = target === 'player' ? this.playerStatusContainer : this.monsterStatusContainer;
-        
-        // Nettoyage complet des icônes du tour précédent
-        container.removeAll(true);
-
-        activeStatuses.forEach((status, index) => {
-            const posX = (index % 4) * 36 - 60; // Alignement en grille serrée (s'aligne avec les slots)
-            const posY = Math.floor(index / 4) * 36 + 12;
-
-            // 1. Fond cliquable/survolable
-            const badgeBg = this.scene.add.rectangle(posX, posY, 26, 26, 0x222222)
-                .setStrokeStyle(1, 0x000000)
-                .setInteractive({ cursor: 'pointer' });
-            
-            // 2. Icône illustrative (Pris en charge par notre loader automatique)
-            const badgeIcon = this.scene.add.image(posX, posY, status.iconKey).setDisplaySize(20, 20);
-
-            // 3. Compteur numérique de stacks empilés (ex: x5 ou ∞)
-            const displayStacks = status.isInfinite ? '∞' : `${status.stacks}`;
-            const stackTxt = this.scene.add.text(posX + 6, posY + 4, displayStacks, {
-                fontFamily: 'Arial', fontSize: '9px', fontStyle: 'bold', color: '#ffea00',
-                backgroundColor: '#000000', padding: { x: 2, y: 1 }
-            }).setOrigin(0.5);
-
-            container.add([badgeBg, badgeIcon, stackTxt]);
-
-            // 4. EFFETS DE SURVOL SOURIS POUR LIRE LA DESCRIPTION DÉTAILLÉE
-            badgeBg.on('pointerover', () => {
-                // Surbrillance cyan pour le joueur, rouge pour l'ennemi
-                badgeBg.setStrokeStyle(1.5, target === 'player' ? 0x00eaff : 0xff4d4d); 
-                onHover(status);
-            });
-
-            badgeBg.on('pointerout', () => {
-                badgeBg.setStrokeStyle(1, 0x000000);
-                onOut();
-            });
-        });
     }
 }

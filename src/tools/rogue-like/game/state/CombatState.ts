@@ -1,8 +1,7 @@
-// src/tools/rogue-like/game/CombatState.ts
-import { ALL_SKILLS, type Skill } from './data/SkillRegistry';
-import { MONSTERS, type MonsterTemplate } from './data/MonsterRegistry';
-import { type CharacterStats, DEFAULT_PLAYER_STATS } from './data/Stats';
-import { type ActiveStatus, STATUS_TEMPLATES, type StatusId } from './data/StatusRegistry';
+import { ALL_SKILLS, type Skill } from '../data/SkillRegistry';
+import { MONSTERS, type MonsterTemplate } from '../data/MonsterRegistry';
+import { type CharacterStats, DEFAULT_PLAYER_STATS } from '../data/Stats';
+import { type ActiveStatus, STATUS_TEMPLATES, type StatusId } from '../data/StatusRegistry';
 
 export class CombatState {
     public score = 0;

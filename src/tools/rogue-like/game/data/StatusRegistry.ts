@@ -44,6 +44,6 @@ export const STATUS_TEMPLATES: Record<StatusId, StatusTemplate> = {
         id: 'moon_prep',
         name: 'Préparation Lunaire',
         desc: 'Séquence d\'allumage lancée. Permet de s\'envoler dans la stratosphère au début du prochain tour.',
-        iconKey: 'status_flight' // On utilise l'icône de vol
+        iconKey: 'status_moon_prep'
     }
 };

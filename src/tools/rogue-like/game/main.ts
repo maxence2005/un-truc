@@ -1,6 +1,6 @@
 import { Game, AUTO, Scale } from 'phaser';
 import { CharSelectScene } from './scenes/CharSelectScene';
-import { DuelScene } from './DuelScene';
+import { DuelScene } from './scenes/DuelScene';
 
 export function initGame(parentContainer: HTMLElement) {
     const config: Phaser.Types.Core.GameConfig = {

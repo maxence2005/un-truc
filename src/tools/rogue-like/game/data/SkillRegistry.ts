@@ -57,7 +57,7 @@ export const ALL_SKILLS: Skill[] = [
         longDesc: 'Propulse le lanceur dans les airs. Confère le statut bénéfique Vol.',
         damageType: 'pure',
         scaling: {},
-        iconKey: 'surcharge', // Remplacé par 'surcharge' (qui existe)
+        iconKey: 'booster',
         inflictsStatus: { id: 'flight', stacks: 1, target: 'self' }
     },
     {
@@ -85,7 +85,7 @@ export const ALL_SKILLS: Skill[] = [
         longDesc: 'Initialise la séquence de décollage (ne fait rien ce tour-ci). Au tour suivant, confère 3 charges de Vol et rend toutes vos attaques Anti-Aériennes. Impossible à relancer si déjà en Vol.',
         damageType: 'pure',
         scaling: {},
-        iconKey: 'surcharge',
+        iconKey: 'moon',
         inflictsStatus: { id: 'moon_prep', stacks: 1, target: 'self' }
     },
     {
@@ -94,6 +94,6 @@ export const ALL_SKILLS: Skill[] = [
         longDesc: 'Inné: Mitraille la cible de 2 coups consécutifs à 40% ATT.\n[Maîtrise 15+]: Ajoute un soin de 10% de vos PV Max.\n[Maîtrise 100+]: Déclenche un coup final cataclysmique à 400% ATT.',
         damageType: 'physical',
         scaling: {}, // Géré dynamiquement par le compteur de maîtrise
-        iconKey: 'saber'
+        iconKey: 'baguette'
     }
 ];
