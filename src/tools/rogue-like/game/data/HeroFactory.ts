@@ -5,6 +5,7 @@ export interface GeneratedHero {
     assetKey: string;
     svgRaw: string;
     stats: CharacterStats;
+    classType: 'humain' | 'mage' | 'guerrier' | 'cyborg';
 }
 
 const SKINS = ['#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#aaffaa', '#aaeaff'];
@@ -142,6 +143,7 @@ export class HeroFactory {
             let stats!: CharacterStats;
             let name = '';
             let svg = '';
+            let classType: 'humain' | 'mage' | 'guerrier' | 'cyborg' = 'humain';
 
             // Génération procédurale du modèle et des statistiques thématiques
             if (bodyType === 0) {
@@ -164,6 +166,7 @@ export class HeroFactory {
                     crit_damage: getRandomFloat(1.40, 1.65),
                     agility: getRandomFloat(0.06, 0.12)
                 };
+                classType = 'humain';
             } else if (bodyType === 1) {
                 // Wizard: High magical power & defense, fragile
                 name = `${getRandomElement(NAMES_WIZARD)}_${getRandomInt(10, 99)}`;
@@ -184,6 +187,7 @@ export class HeroFactory {
                     crit_damage: getRandomFloat(1.30, 1.50),
                     agility: getRandomFloat(0.04, 0.10)
                 };
+                classType = 'mage';
             } else if (bodyType === 2) {
                 // Knight: Tanky, high HP and physical defense, slow
                 name = `${getRandomElement(NAMES_KNIGHT)}_${getRandomInt(10, 99)}`;
@@ -204,6 +208,7 @@ export class HeroFactory {
                     crit_damage: getRandomFloat(1.25, 1.45),
                     agility: getRandomFloat(0.02, 0.06)
                 };
+                classType = 'guerrier';
             } else {
                 // Cyborg: Fast, high agility & crit
                 name = `${getRandomElement(NAMES_CYBORG)}_${getRandomInt(10, 99)}`;
@@ -223,9 +228,10 @@ export class HeroFactory {
                     crit_damage: getRandomFloat(1.45, 1.75),
                     agility: getRandomFloat(0.08, 0.16)
                 };
+                classType = 'cyborg';
             }
 
-            options.push({ name, assetKey: `hero_choice_${i}`, svgRaw: svg, stats });
+            options.push({ name, assetKey: `hero_choice_${i}`, svgRaw: svg, stats, classType });
         }
         return options;
     }

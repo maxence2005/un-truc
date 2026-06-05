@@ -45,6 +45,7 @@ export class DuelScene extends Scene {
         PlaylistManager.start(this);
 
         this.state = new CombatState();
+        this.state.classType = this.heroSetup.classType;
         this.state.skills = {};
         this.state.playerStats = this.heroSetup.stats;
         this.state.playerMaxHp = this.heroSetup.stats.hp_max;
@@ -102,6 +103,7 @@ export class DuelScene extends Scene {
                     this.isTweening = false;
                 } else {
                     this.skillsLayout?.setVisible(false);
+                    this.showGameOverScreen();
                 }
             },
             () => {
@@ -223,5 +225,68 @@ export class DuelScene extends Scene {
         this.isChoosing = false;
         this.isTweening = false;
         this.logText.setText(`Mise à niveau [${upgrade.name}] installée ! À vous de jouer.`);
+    }
+
+    private showGameOverScreen() {
+        this.isChoosing = true; // Empêche d'autres actions
+        this.isTweening = true;
+        
+        // 1. Superposition sombre translucide sur tout l'écran
+        const screenOverlay = this.add.rectangle(480, 320, 960, 640, 0x000000, 0.6).setInteractive();
+        
+        // 2. Fenêtre de Game Over (Fenêtre standard Win95)
+        const winContainer = this.add.container(480, 260);
+        
+        // Cadre de la fenêtre
+        const winBg = this.add.rectangle(0, 0, 420, 220, 0xdbdbdb).setStrokeStyle(3, 0x808080);
+        const winShadow = this.add.rectangle(4, 4, 420, 220, 0x000000, 0.4);
+        
+        // Barre de titre rouge foncé (erreur système fatale)
+        const titleBar = this.add.rectangle(0, -95, 414, 24, 0x800000);
+        const titleText = this.add.text(-195, -104, ' SYSTEM CRASH: GAME_OVER.EXE', {
+            fontFamily: 'Arial, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffffff'
+        });
+        
+        // Description de l'erreur
+        const errorText = this.add.text(0, -30, `FATAL ERROR: HERO_DEFEATED\n\nScore final : ${this.state.score} round(s)\n\nVotre système a rencontré une erreur fatale.`, {
+            fontFamily: 'Courier New', fontSize: '13px', color: '#000000', fontStyle: 'bold', align: 'center'
+        }).setOrigin(0.5);
+
+        // Bouton de relance
+        const btnRestart = this.add.container(0, 50);
+        const btnBg = this.add.rectangle(0, 0, 200, 36, 0xdbdbdb).setStrokeStyle(2, 0x808080).setInteractive({ cursor: 'pointer' });
+        const btnShadow = this.add.rectangle(3, 3, 200, 36, 0x000000, 0.4);
+        const btnText = this.add.text(0, 0, 'RELANCER [R]', {
+            fontFamily: 'Arial', fontSize: '13px', fontStyle: 'bold', color: '#000000'
+        }).setOrigin(0.5);
+        btnRestart.add([btnShadow, btnBg, btnText]);
+        btnRestart.sendToBack(btnShadow);
+        
+        winContainer.add([winShadow, winBg, titleBar, titleText, errorText, btnRestart]);
+        winContainer.sendToBack(winShadow);
+        
+        // Animations de boutons
+        btnBg.on('pointerover', () => btnBg.setFillStyle(0xeaeaea));
+        btnBg.on('pointerout', () => btnBg.setFillStyle(0xdbdbdb));
+        
+        const triggerRestart = () => {
+            this.scene.start('CharSelectScene');
+        };
+        
+        btnBg.on('pointerdown', triggerRestart);
+        
+        // Écouteur de la touche R
+        const keyListener = (e: KeyboardEvent) => {
+            if (e.key === 'r' || e.key === 'R') {
+                this.input.keyboard?.off('keydown', keyListener);
+                triggerRestart();
+            }
+        };
+        this.input.keyboard?.on('keydown', keyListener);
+        
+        // Suppression automatique de l'écouteur si la scène s'arrête
+        this.events.once('shutdown', () => {
+            this.input.keyboard?.off('keydown', keyListener);
+        });
     }
 }

@@ -77,6 +77,12 @@ export class TurnManager {
             return;
         }
 
+        // --- RESTRICTION GEL ---
+        if (playerSkill.hasAntiAir && this.state.playerStatuses.some(s => s.id === 'freeze')) {
+            this.logText.setText(`[SYSTEM] Erreur: Impossible d'utiliser une capacité anti-aérienne sous l'effet du Gel !`);
+            return;
+        }
+
         this.onTurnStart();
         
         const skillsLayout = this.getSkillsLayout();
@@ -89,15 +95,23 @@ export class TurnManager {
         const playerStats = this.state.playerStats;
         const monsterStats = this.state.currentMonster.stats;
 
-        // IA du monstre : Choix d'une compétence aléatoire dans son catalogue
+        // IA du monstre : Choix d'une compétence aléatoire dans son catalogue (Filtrée si gelé)
         const monsterSkills = this.state.currentMonster.skills;
-        const monsterSkill = monsterSkills[Math.floor(Math.random() * monsterSkills.length)]!;
+        const isMonsterFrozen = this.state.monsterStatuses.some(s => s.id === 'freeze');
+        const availableMonsterSkills = isMonsterFrozen 
+            ? monsterSkills.filter(s => !s.hasAntiAir) 
+            : monsterSkills;
+        const chosenMonsterSkills = availableMonsterSkills.length > 0 ? availableMonsterSkills : monsterSkills;
+        const monsterSkill = chosenMonsterSkills[Math.floor(Math.random() * chosenMonsterSkills.length)]!;
 
         // Vider la boîte de dialogue pour le nouveau tour
         this.logText.setText('');
 
         // --- ORDRE DE JEU BASÉ SUR LA VITESSE ---
-        const playerGoesFirst = playerStats.speed >= monsterStats.speed;
+        // --- ORDRE DE JEU BASÉ SUR LA VITESSE ---
+        const activePlayerSpeed = Math.round(playerStats.speed * CombatCalculator.getStatModifier(this.state.playerStatuses, 'speed'));
+        const activeMonsterSpeed = Math.round(monsterStats.speed * CombatCalculator.getStatModifier(this.state.monsterStatuses, 'speed'));
+        const playerGoesFirst = activePlayerSpeed >= activeMonsterSpeed;
 
         const firstAction = () => {
             if (playerGoesFirst) {
@@ -135,6 +149,7 @@ export class TurnManager {
         const casterStatuses = isPlayer ? this.state.playerStatuses : this.state.monsterStatuses;
         const targetStatuses = isPlayer ? this.state.monsterStatuses : this.state.playerStatuses;
 
+        const skillUsageCount = isPlayer ? (this.state.skillUsage[skill.name] || 0) : 0;
         const result = CombatCalculator.calculateAction(
             skill, 
             casterStats, 
@@ -142,7 +157,8 @@ export class TurnManager {
             casterStatuses, 
             targetStatuses, 
             isPlayer ? 'Héros' : this.state.currentMonster.name, 
-            isPlayer ? this.state.currentMonster.name : 'Héros'
+            isPlayer ? this.state.currentMonster.name : 'Héros',
+            skillUsageCount
         );
         
         // Application immédiate des contrecoups de Saignement / Brûlure du lanceur
@@ -253,6 +269,12 @@ export class TurnManager {
                     const statusDest = skill.inflictsStatus.target === 'enemy' ? targetTag : casterTag;
                     this.state.addStatus(statusDest, skill.inflictsStatus.id, skill.inflictsStatus.stacks);
                 }
+                if (skill.inflictsStatuses) {
+                    skill.inflictsStatuses.forEach(s => {
+                        const statusDest = s.target === 'enemy' ? targetTag : casterTag;
+                        this.state.addStatus(statusDest, s.id, s.stacks);
+                    });
+                }
             }
 
             // D. DÉCRÉMENTATION DES STATUTS DE TOUR APRÈS ACTION
@@ -311,20 +333,21 @@ export class TurnManager {
     }
 
     private decrementStatusStacks(casterTag: 'player' | 'monster') {
-        const statuses = casterTag === 'player' ? this.state.playerStatuses : this.state.monsterStatuses;
+        const list = casterTag === 'player' ? this.state.playerStatuses : this.state.monsterStatuses;
         
-        // Décrémentation Brûlure
-        const activeBurn = statuses.find(s => s.id === 'burn');
-        if (activeBurn && !activeBurn.isInfinite) {
-            activeBurn.stacks -= 1;
-            if (activeBurn.stacks <= 0) this.state.removeStatus(casterTag, 'burn');
-        }
+        list.forEach(s => {
+            if (s.isInfinite) return;
+            const isStatStatus = s.id.includes('_up_') || s.id.includes('_down_');
+            if (s.id === 'burn' || s.id === 'flight' || isStatStatus) {
+                s.stacks -= 1;
+            }
+        });
 
-        // Décrémentation Vol : Consomme une charge après chaque attaque lancée
-        const activeFlight = statuses.find(s => s.id === 'flight');
-        if (activeFlight && !activeFlight.isInfinite) {
-            activeFlight.stacks -= 1;
-            if (activeFlight.stacks <= 0) this.state.removeStatus(casterTag, 'flight');
+        // Supprimer les statuts expirés (stacks <= 0)
+        if (casterTag === 'player') {
+            this.state.playerStatuses = this.state.playerStatuses.filter(s => s.stacks > 0);
+        } else {
+            this.state.monsterStatuses = this.state.monsterStatuses.filter(s => s.stacks > 0);
         }
     }
 }

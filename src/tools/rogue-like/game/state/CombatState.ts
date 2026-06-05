@@ -13,6 +13,7 @@ export interface StatUpgrade {
 
 export class CombatState {
     public score = 0;
+    public classType: 'humain' | 'mage' | 'guerrier' | 'cyborg' = 'humain';
     public playerHp = 100;
     public playerMaxHp = 100;
     public monsterHp = 50;
@@ -141,8 +142,7 @@ export class CombatState {
         // 6. Multiplicateur Critique (+2% de dégâts critiques par niveau)
         stats.crit_damage = stats.crit_damage + this.score * 0.02;
         
-        // On nettoie les statuts à la fin d'un combat
-        this.playerStatuses = [];
+        // On nettoie uniquement les statuts du monstre à la fin d'un combat (les statuts du joueur persistent)
         this.monsterStatuses = [];
 
         this.applyMonsterStartStatuses();

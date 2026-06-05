@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ALL_SKILLS, type Skill, getScalingFormulaString } from '../data/SkillRegistry';
+import { CLASS_SKILLS, GENERAL_ADVENTURE_SKILLS, type Skill, getScalingFormulaString } from '../data/SkillRegistry';
 import { type CombatState, type StatUpgrade } from '../state/CombatState';
 
 export class DraftManager {
@@ -35,7 +35,7 @@ export class DraftManager {
         });
 
         if (isFirstChoice) {
-            this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
+            this.showSkillsDraft(scene, choiceContainer, state, onSelectSkill);
         } else {
             this.showCategorySelection(scene, choiceContainer, state, onSelectSkill, onSelectStat);
         }
@@ -71,7 +71,7 @@ export class DraftManager {
         bgSkill.on('pointerover', () => bgSkill.setFillStyle(0xeaeaea));
         bgSkill.on('pointerout', () => bgSkill.setFillStyle(0xdbdbdb));
         bgSkill.on('pointerdown', () => {
-            this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
+            this.showSkillsDraft(scene, choiceContainer, state, onSelectSkill);
         });
 
         // 2. Bouton Statistique
@@ -94,7 +94,7 @@ export class DraftManager {
         // Enregistre l'écouteur clavier pour la sélection de catégorie (& ou é)
         this.registerKeyListener(scene, (e: KeyboardEvent) => {
             if (e.key === '&' || e.key === '1' || e.code === 'Digit1') {
-                this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
+                this.showSkillsDraft(scene, choiceContainer, state, onSelectSkill);
             } else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') {
                 this.showStatsDraft(scene, choiceContainer, state, onSelectStat);
             }
@@ -104,13 +104,18 @@ export class DraftManager {
     private static showSkillsDraft(
         scene: Phaser.Scene,
         choiceContainer: Phaser.GameObjects.Container,
-        ownedSkills: Record<string, Skill>,
+        state: CombatState,
         onSelectSkill: (arrowKey: string, skill: Skill) => void
     ) {
         choiceContainer.removeAll(true);
 
+        const ownedSkills = state.skills;
+        const classSkills = CLASS_SKILLS[state.classType] || CLASS_SKILLS.humain;
+        // Premier choix (score = 0) : uniquement les compétences de classe.
+        // Pendant l'aventure (score > 0) : compétences de classe + compétences neutres de l'aventure.
+        const pool = state.score === 0 ? classSkills : [...classSkills, ...GENERAL_ADVENTURE_SKILLS];
         const ownedSkillNames = Object.values(ownedSkills).map(s => s.name);
-        const availableSkills = ALL_SKILLS.filter(s => !ownedSkillNames.includes(s.name));
+        const availableSkills = pool.filter(s => !ownedSkillNames.includes(s.name));
         const choices = Phaser.Utils.Array.Shuffle(availableSkills).slice(0, 3);
 
         const shortcutKeys = ['&', 'é', '"'];
