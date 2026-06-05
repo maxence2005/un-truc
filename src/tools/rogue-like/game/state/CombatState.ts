@@ -115,11 +115,31 @@ export class CombatState {
     public setupNextMonster() {
         this.score += 1;
         this.pickRandomMonster();
-        // Équilibrage progressif basé sur le score
-        this.monsterMaxHp = this.currentMonster.stats.hp_max + (this.score * 15);
+        
+        // Équilibrage progressif de toutes les statistiques basé sur le score
+        const stats = this.currentMonster.stats;
+
+        // 1. PV Max (+15 flat par niveau)
+        this.monsterMaxHp = stats.hp_max + (this.score * 15);
         this.monsterHp = this.monsterMaxHp;
-        // Aligner la stat hp_max clonée pour l'affichage de la sidebar
-        this.currentMonster.stats.hp_max = this.monsterMaxHp;
+        stats.hp_max = this.monsterMaxHp;
+
+        // 2. Attaque et Attaque Magique (+8% par niveau)
+        stats.att = Math.round(stats.att * (1 + this.score * 0.08));
+        stats.att_magic = Math.round(stats.att_magic * (1 + this.score * 0.08));
+
+        // 3. Défenses (+6% par niveau)
+        stats.def_phys = Math.round(stats.def_phys * (1 + this.score * 0.06));
+        stats.def_magic = Math.round(stats.def_magic * (1 + this.score * 0.06));
+
+        // 4. Vitesse (+3% par niveau)
+        stats.speed = Math.round(stats.speed * (1 + this.score * 0.03));
+
+        // 5. Chances de critique (+1% par niveau, max 50%)
+        stats.crit_rate = Math.min(0.50, stats.crit_rate + this.score * 0.01);
+
+        // 6. Multiplicateur Critique (+2% de dégâts critiques par niveau)
+        stats.crit_damage = stats.crit_damage + this.score * 0.02;
         
         // On nettoie les statuts à la fin d'un combat
         this.playerStatuses = [];
@@ -156,14 +176,14 @@ export class CombatState {
 
     public getRandomThreeStatUpgrades(): StatUpgrade[] {
         const pool: StatUpgrade[] = [
-            { name: '🔋 VITALITE.SYS', desc: 'PV Max +20 points (soigne d\'autant).', statKey: 'hp_max', value: 20 },
-            { name: '⚔️ POWER_ATT.EXE', desc: 'Attaque Physique +5 points.', statKey: 'att', value: 5 },
-            { name: '🔮 MAGIC_ATT.EXE', desc: 'Attaque Magique +5 points.', statKey: 'att_magic', value: 5 },
-            { name: '🛡️ DEF_PHYS.SYS', desc: 'Défense Physique +4 points.', statKey: 'def_phys', value: 4 },
-            { name: '🛡️ DEF_MAGIC.SYS', desc: 'Défense Magique +4 points.', statKey: 'def_magic', value: 4 },
-            { name: '⚡ OVERCLOCK.EXE', desc: 'Vitesse +3 points.', statKey: 'speed', value: 3 },
-            { name: '🎯 CRIT_BOOST.SYS', desc: 'Taux de Critique +5%.', statKey: 'crit_rate', value: 0.05 },
-            { name: '💨 EVASION.EXE', desc: 'Agilité (esquive) +4%.', statKey: 'agility', value: 0.04 }
+            { name: 'SYS.VITALITY', desc: 'PV Max +20 points (soigne d\'autant).', statKey: 'hp_max', value: 20 },
+            { name: 'DRV.PHYS_ATT', desc: 'Attaque Physique +5 points.', statKey: 'att', value: 5 },
+            { name: 'DRV.MAGI_ATT', desc: 'Attaque Magique +5 points.', statKey: 'att_magic', value: 5 },
+            { name: 'SYS.DEF_PHYS', desc: 'Défense Physique +4 points.', statKey: 'def_phys', value: 4 },
+            { name: 'SYS.DEF_MAGI', desc: 'Défense Magique +4 points.', statKey: 'def_magic', value: 4 },
+            { name: 'SYS.OVERCLOCK', desc: 'Vitesse +3 points.', statKey: 'speed', value: 3 },
+            { name: 'SYS.CRITICAL', desc: 'Taux de Critique +5%.', statKey: 'crit_rate', value: 0.05 },
+            { name: 'DRV.EVASION', desc: 'Agilité (esquive) +4%.', statKey: 'agility', value: 0.04 }
         ];
         // Utiliser la fonction de shuffle Phaser
         return Phaser.Utils.Array.Shuffle(pool).slice(0, 3);

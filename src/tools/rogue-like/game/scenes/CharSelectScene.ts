@@ -22,6 +22,20 @@ export class CharSelectScene extends Scene {
             this.load.svg(hero.assetKey, url);
         });
 
+        // Écouteur clavier pour sélectionner sans cliquer (touches &, é, ")
+        this.input.keyboard?.on('keydown', (e: KeyboardEvent) => {
+            if (!this.options || this.options.length < 3) return;
+            let chosenIndex = -1;
+            if (e.key === '&' || e.key === '1' || e.code === 'Digit1') chosenIndex = 0;
+            else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') chosenIndex = 1;
+            else if (e.key === '"' || e.key === '3' || e.code === 'Digit3') chosenIndex = 2;
+
+            if (chosenIndex !== -1) {
+                const hero = this.options[chosenIndex]!;
+                this.scene.start('DuelScene', { hero });
+            }
+        });
+
         // Validation du cache pour le rendu
         this.load.once('complete', () => this.drawSelectionUI());
         this.load.start();
@@ -57,7 +71,9 @@ export class CharSelectScene extends Scene {
             
             // Texture humaine générée
             const sprite = this.add.image(0, -90, hero.assetKey).setScale(2.5);
-            const hint = this.add.text(0, 180, '[ CHARGER LES CIRCUITS ]', { 
+            
+            const shortcutHint = ['&', 'é', '"'][index];
+            const hint = this.add.text(0, 180, `[ ${shortcutHint} ] CHARGER CIRCUITS`, { 
                 fontFamily: 'Arial, sans-serif', 
                 fontSize: '11px', 
                 fontStyle: 'bold', 

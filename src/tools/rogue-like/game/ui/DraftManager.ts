@@ -1,23 +1,43 @@
 import Phaser from 'phaser';
 import { ALL_SKILLS, type Skill, getScalingFormulaString } from '../data/SkillRegistry';
-import { type StatUpgrade } from '../state/CombatState';
+import { type CombatState, type StatUpgrade } from '../state/CombatState';
 
 export class DraftManager {
+    private static activeKeyListener: ((e: KeyboardEvent) => void) | null = null;
+
+    private static registerKeyListener(scene: Phaser.Scene, listener: (e: KeyboardEvent) => void) {
+        if (this.activeKeyListener) {
+            scene.input.keyboard?.off('keydown', this.activeKeyListener);
+        }
+        this.activeKeyListener = listener;
+        scene.input.keyboard?.on('keydown', listener);
+    }
+
+    private static cleanupKeyListener(scene: Phaser.Scene) {
+        if (this.activeKeyListener) {
+            scene.input.keyboard?.off('keydown', this.activeKeyListener);
+            this.activeKeyListener = null;
+        }
+    }
+
     public static show(
         scene: Phaser.Scene,
-        ownedSkills: Record<string, Skill>,
+        state: CombatState,
         isFirstChoice: boolean,
         onSelectSkill: (arrowKey: string, skill: Skill) => void,
         onSelectStat: (upgrade: StatUpgrade) => void
     ): Phaser.GameObjects.Container {
         const choiceContainer = scene.add.container(360, 260);
 
+        // Nettoyage automatique des écouteurs de touches lorsque la boîte de dialogue se ferme
+        choiceContainer.once('destroy', () => {
+            this.cleanupKeyListener(scene);
+        });
+
         if (isFirstChoice) {
-            // Premier choix du jeu : compétences obligatoires
-            this.showSkillsDraft(scene, choiceContainer, ownedSkills, onSelectSkill);
+            this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
         } else {
-            // Choix suivants : Sélection de la catégorie de récompense
-            this.showCategorySelection(scene, choiceContainer, ownedSkills, onSelectSkill, onSelectStat);
+            this.showCategorySelection(scene, choiceContainer, state, onSelectSkill, onSelectStat);
         }
 
         return choiceContainer;
@@ -26,7 +46,7 @@ export class DraftManager {
     private static showCategorySelection(
         scene: Phaser.Scene,
         choiceContainer: Phaser.GameObjects.Container,
-        ownedSkills: Record<string, Skill>,
+        state: CombatState,
         onSelectSkill: (arrowKey: string, skill: Skill) => void,
         onSelectStat: (upgrade: StatUpgrade) => void
     ) {
@@ -41,7 +61,7 @@ export class DraftManager {
         const btnSkill = scene.add.container(-115, 0);
         const bgSkill = scene.add.rectangle(0, 0, 200, 120, 0xdbdbdb).setStrokeStyle(3, 0x808080).setInteractive({ cursor: 'pointer' });
         const shadowSkill = scene.add.rectangle(4, 4, 200, 120, 0x000000, 0.4);
-        const textSkill = scene.add.text(0, 0, "💾 LOGICIEL.EXE\n\n[ NOUVELLE CAPACITÉ ]", {
+        const textSkill = scene.add.text(0, 0, "SYS.LOGICIEL\n\n[&] NOUVELLE CAPACITÉ", {
             fontFamily: 'Arial', fontSize: '12px', fontStyle: 'bold', color: '#0000aa', align: 'center'
         }).setOrigin(0.5);
         btnSkill.add([shadowSkill, bgSkill, textSkill]);
@@ -51,14 +71,14 @@ export class DraftManager {
         bgSkill.on('pointerover', () => bgSkill.setFillStyle(0xeaeaea));
         bgSkill.on('pointerout', () => bgSkill.setFillStyle(0xdbdbdb));
         bgSkill.on('pointerdown', () => {
-            this.showSkillsDraft(scene, choiceContainer, ownedSkills, onSelectSkill);
+            this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
         });
 
         // 2. Bouton Statistique
         const btnStat = scene.add.container(115, 0);
         const bgStat = scene.add.rectangle(0, 0, 200, 120, 0xdbdbdb).setStrokeStyle(3, 0x808080).setInteractive({ cursor: 'pointer' });
         const shadowStat = scene.add.rectangle(4, 4, 200, 120, 0x000000, 0.4);
-        const textStat = scene.add.text(0, 0, "⚙️ CONFIG.SYS\n\n[ AMÉLIORATION STAT ]", {
+        const textStat = scene.add.text(0, 0, "SYS.CONFIG\n\n[é] AMÉLIORATION STAT", {
             fontFamily: 'Arial', fontSize: '12px', fontStyle: 'bold', color: '#006600', align: 'center'
         }).setOrigin(0.5);
         btnStat.add([shadowStat, bgStat, textStat]);
@@ -68,7 +88,16 @@ export class DraftManager {
         bgStat.on('pointerover', () => bgStat.setFillStyle(0xeaeaea));
         bgStat.on('pointerout', () => bgStat.setFillStyle(0xdbdbdb));
         bgStat.on('pointerdown', () => {
-            this.showStatsDraft(scene, choiceContainer, onSelectStat);
+            this.showStatsDraft(scene, choiceContainer, state, onSelectStat);
+        });
+
+        // Enregistre l'écouteur clavier pour la sélection de catégorie (& ou é)
+        this.registerKeyListener(scene, (e: KeyboardEvent) => {
+            if (e.key === '&' || e.key === '1' || e.code === 'Digit1') {
+                this.showSkillsDraft(scene, choiceContainer, state.skills, onSelectSkill);
+            } else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') {
+                this.showStatsDraft(scene, choiceContainer, state, onSelectStat);
+            }
         });
     }
 
@@ -83,6 +112,8 @@ export class DraftManager {
         const ownedSkillNames = Object.values(ownedSkills).map(s => s.name);
         const availableSkills = ALL_SKILLS.filter(s => !ownedSkillNames.includes(s.name));
         const choices = Phaser.Utils.Array.Shuffle(availableSkills).slice(0, 3);
+
+        const shortcutKeys = ['&', 'é', '"'];
 
         choices.forEach((skill, index) => {
             const posX = (index - 1) * 215;
@@ -105,7 +136,8 @@ export class DraftManager {
                 fontFamily: 'Arial, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#ffffff' 
             }).setOrigin(0.5);
             
-            const selectHint = scene.add.text(0, 64, '[ ÉQUIPER ]', { 
+            const keyHint = shortcutKeys[index]!;
+            const selectHint = scene.add.text(0, 64, `[ ${keyHint} ] ÉQUIPER`, { 
                 fontFamily: 'Arial, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#333333' 
             }).setOrigin(0.5);
 
@@ -115,7 +147,8 @@ export class DraftManager {
 
             bg.on('pointerover', () => bg.setFillStyle(0xeaeaea));
             bg.on('pointerout', () => bg.setFillStyle(0xdbdbdb));
-            bg.on('pointerdown', () => {
+            
+            const handleSelection = () => {
                 const ownedKeys = Object.keys(ownedSkills);
                 if (ownedKeys.length < 4) {
                     const slotOrder = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
@@ -125,7 +158,9 @@ export class DraftManager {
                 } else {
                     this.showReplacementSelection(scene, choiceContainer, ownedSkills, skill, onSelectSkill);
                 }
-            });
+            };
+
+            bg.on('pointerdown', handleSelection);
 
             let isExpanded = false;
             const formula = getScalingFormulaString(skill);
@@ -150,6 +185,27 @@ export class DraftManager {
                     infoBtnTxt.setText('i');
                 }
             });
+        });
+
+        // Écouteur clavier pour sélectionner une carte de compétence
+        this.registerKeyListener(scene, (e: KeyboardEvent) => {
+            let idx = -1;
+            if (e.key === '&' || e.key === '1' || e.code === 'Digit1') idx = 0;
+            else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') idx = 1;
+            else if (e.key === '"' || e.key === '3' || e.code === 'Digit3') idx = 2;
+
+            if (idx !== -1 && choices[idx]) {
+                const skill = choices[idx]!;
+                const ownedKeys = Object.keys(ownedSkills);
+                if (ownedKeys.length < 4) {
+                    const slotOrder = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
+                    const chosenKey = slotOrder[ownedKeys.length]!;
+                    choiceContainer.destroy();
+                    onSelectSkill(chosenKey, skill);
+                } else {
+                    this.showReplacementSelection(scene, choiceContainer, ownedSkills, skill, onSelectSkill);
+                }
+            }
         });
     }
 
@@ -176,7 +232,9 @@ export class DraftManager {
             ArrowUp: '▲ HAUT', ArrowRight: '▶ DROITE', ArrowDown: '▼ BAS', ArrowLeft: '◀ GAUCHE' 
         };
 
+        const shortcutKeys = ['&', 'é', '"', '\''];
         const keys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
+        
         keys.forEach((key, index) => {
             const posY = -30 + (index * 45);
             const btn = scene.add.container(0, posY);
@@ -185,7 +243,8 @@ export class DraftManager {
             const shadow = scene.add.rectangle(3, 3, 360, 36, 0x000000, 0.4);
 
             const skill = ownedSkills[key]!;
-            const text = scene.add.text(0, 0, `[${arrowSymbols[key]}]  ${skill.name} (${skill.shortDesc})`, {
+            const keyHint = shortcutKeys[index]!;
+            const text = scene.add.text(0, 0, `[ ${keyHint} ] [${arrowSymbols[key]}]  ${skill.name} (${skill.shortDesc})`, {
                 fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#000000'
             }).setOrigin(0.5);
 
@@ -200,31 +259,33 @@ export class DraftManager {
                 onSelectSkill(key, newSkill);
             });
         });
+
+        // Écouteur clavier pour remplacer la compétence correspondante
+        this.registerKeyListener(scene, (e: KeyboardEvent) => {
+            let idx = -1;
+            if (e.key === '&' || e.key === '1' || e.code === 'Digit1') idx = 0;
+            else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') idx = 1;
+            else if (e.key === '"' || e.key === '3' || e.code === 'Digit3') idx = 2;
+            else if (e.key === '\'' || e.key === '4' || e.code === 'Digit4') idx = 3;
+
+            if (idx !== -1) {
+                const chosenKey = keys[idx]!;
+                choiceContainer.destroy();
+                onSelectSkill(chosenKey, newSkill);
+            }
+        });
     }
 
     private static showStatsDraft(
         scene: Phaser.Scene,
         choiceContainer: Phaser.GameObjects.Container,
+        state: CombatState,
         onSelectStat: (upgrade: StatUpgrade) => void
     ) {
         choiceContainer.removeAll(true);
 
-        const dummyState = new (class {
-            public getRandomThreeStatUpgrades() {
-                const pool: StatUpgrade[] = [
-                    { name: '🔋 VITALITE.SYS', desc: 'PV Max +20 points (soigne d\'autant).', statKey: 'hp_max', value: 20 },
-                    { name: '⚔️ POWER_ATT.EXE', desc: 'Attaque Physique +5 points.', statKey: 'att', value: 5 },
-                    { name: '🔮 MAGIC_ATT.EXE', desc: 'Attaque Magique +5 points.', statKey: 'att_magic', value: 5 },
-                    { name: '🛡️ DEF_PHYS.SYS', desc: 'Défense Physique +4 points.', statKey: 'def_phys', value: 4 },
-                    { name: '🛡️ DEF_MAGIC.SYS', desc: 'Défense Magique +4 points.', statKey: 'def_magic', value: 4 },
-                    { name: '⚡ OVERCLOCK.EXE', desc: 'Vitesse +3 points.', statKey: 'speed', value: 3 },
-                    { name: '🎯 CRIT_BOOST.SYS', desc: 'Taux de Critique +5%.', statKey: 'crit_rate', value: 0.05 },
-                    { name: '💨 EVASION.EXE', desc: 'Agilité (esquive) +4%.', statKey: 'agility', value: 0.04 }
-                ];
-                return Phaser.Utils.Array.Shuffle(pool).slice(0, 3);
-            }
-        })();
-        const upgrades = dummyState.getRandomThreeStatUpgrades();
+        const upgrades = state.getRandomThreeStatUpgrades();
+        const shortcutKeys = ['&', 'é', '"'];
 
         upgrades.forEach((up, index) => {
             const posX = (index - 1) * 215;
@@ -242,7 +303,8 @@ export class DraftManager {
                 wordWrap: { width: 175 }, align: 'center'
             }).setOrigin(0.5);
 
-            const selectHint = scene.add.text(0, 64, '[ INSTALLER ]', { 
+            const keyHint = shortcutKeys[index]!;
+            const selectHint = scene.add.text(0, 64, `[ ${keyHint} ] INSTALLER`, { 
                 fontFamily: 'Arial, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#333333' 
             }).setOrigin(0.5);
 
@@ -256,6 +318,19 @@ export class DraftManager {
                 choiceContainer.destroy();
                 onSelectStat(up);
             });
+        });
+
+        // Écouteur clavier pour sélectionner une carte de statistiques
+        this.registerKeyListener(scene, (e: KeyboardEvent) => {
+            let idx = -1;
+            if (e.key === '&' || e.key === '1' || e.code === 'Digit1') idx = 0;
+            else if (e.key === 'é' || e.key === '2' || e.code === 'Digit2') idx = 1;
+            else if (e.key === '"' || e.key === '3' || e.code === 'Digit3') idx = 2;
+
+            if (idx !== -1 && upgrades[idx]) {
+                choiceContainer.destroy();
+                onSelectStat(upgrades[idx]!);
+            }
         });
     }
 }

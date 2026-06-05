@@ -59,21 +59,21 @@ export class TurnManager {
         if (playerPrep) {
             this.state.removeStatus('player', 'moon_prep');
             this.state.addStatus('player', 'flight', 3);
-            this.createFloatingText(220, 180, "DÉCOLLAGE 🚀", "#00eaff");
+            this.createFloatingText(220, 180, "DÉCOLLAGE", "#00eaff");
         }
 
         const monsterPrep = this.state.monsterStatuses.find(s => s.id === 'moon_prep');
         if (monsterPrep) {
             this.state.removeStatus('monster', 'moon_prep');
             this.state.addStatus('monster', 'flight', 3);
-            this.createFloatingText(500, 180, "DÉCOLLAGE 🚀", "#ff4d4d");
+            this.createFloatingText(500, 180, "DÉCOLLAGE", "#ff4d4d");
         }
 
         const playerSkill = this.state.skills[playerSkillKey]!;
 
         // --- RESTRICTION GO TO THE MOON ---
         if (playerSkill.name === 'Go to the moon' && this.state.playerStatuses.some(s => s.id === 'flight')) {
-            this.logText.setText(`🚀 [SYSTEM] Erreur: Impossible de relancer 'Go to the moon' pendant que vous volez déjà !`);
+            this.logText.setText(`[SYSTEM] Erreur: Impossible de relancer 'Go to the moon' pendant que vous volez déjà !`);
             return;
         }
 

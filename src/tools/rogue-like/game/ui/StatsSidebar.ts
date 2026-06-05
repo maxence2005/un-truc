@@ -17,7 +17,7 @@ export class StatsSidebar {
         
         // Cadre principal Win95
         this.scene.add.rectangle(x, 320, 220, 620, 0xdbdbdb).setStrokeStyle(3, 0x808080);
-        this.scene.add.text(x, 20, '📊 CORE_STATS.SYS', { fontFamily: 'Arial', fontSize: '13px', fontStyle: 'bold', color: '#000080' }).setOrigin(0.5);
+        this.scene.add.text(x, 20, 'CORE_STATS.SYS', { fontFamily: 'Arial', fontSize: '13px', fontStyle: 'bold', color: '#000080' }).setOrigin(0.5);
 
         const statKeys = ['hp_max', 'att', 'att_magic', 'def_phys', 'def_magic', 'speed', 'crit_rate', 'crit_damage', 'agility'];
         const slotOffsets = [-60, -20, 20, 60];
@@ -33,7 +33,7 @@ export class StatsSidebar {
         });
 
         // Icônes de compétences du Héros
-        this.scene.add.text(x - 95, 195, '⚡ HERO SKILLS', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#0000aa' });
+        this.scene.add.text(x - 95, 195, 'HERO_SKILLS.SYS', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#0000aa' });
         this.playerSkillIcons = slotOffsets.map(offset => {
             this.scene.add.rectangle(x + offset, 225, 30, 30, 0x111111).setStrokeStyle(1, 0xffffff);
             return this.scene.add.image(x + offset, 225, '').setDisplaySize(24, 24).setOrigin(0.5);
@@ -50,7 +50,7 @@ export class StatsSidebar {
         });
 
         // Icônes de compétences du Monstre
-        this.scene.add.text(x - 95, 460, '💀 MONSTER SKILLS', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#555555' });
+        this.scene.add.text(x - 95, 460, 'MONSTER_SKILLS.SYS', { fontFamily: 'Courier New', fontSize: '11px', fontStyle: 'bold', color: '#555555' });
         this.monsterSkillIcons = slotOffsets.map(offset => {
             this.scene.add.rectangle(x + offset, 490, 30, 30, 0x221111).setStrokeStyle(1, 0xffcccc);
             return this.scene.add.image(x + offset, 490, '').setDisplaySize(24, 24).setOrigin(0.5);

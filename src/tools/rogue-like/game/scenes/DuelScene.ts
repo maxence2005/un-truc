@@ -163,13 +163,13 @@ export class DuelScene extends Scene {
     private showSkillTooltip(skill: Skill, ownerLabel: string) {
         this.lastLogMessage = this.logText.text;
         const formula = getScalingFormulaString(skill); 
-        this.logText.setText(`💡 [PROFIL DE CAPACITÉ - ${ownerLabel}]\nNom: ${skill.name}\nEffet: ${skill.longDesc}\n⚡ Calculs: ${formula}`);
+        this.logText.setText(`[PROFIL DE CAPACITÉ - ${ownerLabel}]\nNom: ${skill.name}\nEffet: ${skill.longDesc}\nCalculs: ${formula}`);
     }
 
     private showStatusTooltip(status: ActiveStatus, ownerLabel: string) {
         this.lastLogMessage = this.logText.text;
         const durationType = status.isInfinite ? "PERMANENT / INNÉ" : `CHARGES ACTIVES : x${status.stacks}`;
-        this.logText.setText(`🧪 [EFFET DE STATUT - ${ownerLabel}]\nNom: ${status.name} (${durationType})\nNotice technique: ${status.desc}`);
+        this.logText.setText(`[EFFET DE STATUT - ${ownerLabel}]\nNom: ${status.name} (${durationType})\nNotice technique: ${status.desc}`);
     }
 
     private hideSkillTooltip() {
@@ -187,7 +187,7 @@ export class DuelScene extends Scene {
 
         this.choiceContainer = DraftManager.show(
             this,
-            this.state.skills,
+            this.state,
             isFirstChoice,
             (arrowKey, skill) => this.selectDraftedSkill(arrowKey, skill),
             (upgrade) => this.selectStatUpgrade(upgrade)
