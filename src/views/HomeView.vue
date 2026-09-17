@@ -74,6 +74,9 @@ const getToolIdLabel = (index: number) => {
   gap: 64px;
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .hero-section {
@@ -94,17 +97,24 @@ const getToolIdLabel = (index: number) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
 }
 
 .window-title {
   color: $white;
   font-size: 0.875rem;
   font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .window-controls {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .control-box {
@@ -119,10 +129,11 @@ const getToolIdLabel = (index: number) => {
   text-align: center;
 
   h1 {
-    font-size: 4rem;
+    font-size: clamp(2rem, 7vw, 4rem);
     font-weight: 900;
     margin-bottom: 16px;
     letter-spacing: -2px;
+    word-break: break-word;
     @include glitch-effect;
   }
 
@@ -139,7 +150,7 @@ const getToolIdLabel = (index: number) => {
 
 .catalogue-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 32px;
 }
 
@@ -160,6 +171,7 @@ const getToolIdLabel = (index: number) => {
 .icon-small {
   color: $white;
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .card-body {
@@ -189,6 +201,8 @@ const getToolIdLabel = (index: number) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 
   .status-text {
     font-size: 0.75rem;
@@ -204,6 +218,11 @@ const getToolIdLabel = (index: number) => {
   font-size: 0.875rem;
   box-shadow: 3px 3px 0px 0px $black;
   transition: background-color 0.1s, color 0.1s;
+  min-height: $min-touch-target;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   @include inset-shadow-active;
 
   &:hover {
@@ -228,6 +247,7 @@ const getToolIdLabel = (index: number) => {
   position: absolute;
   bottom: 0;
   left: 0;
+  box-sizing: border-box;
 
   .footer-logo {
     font-size: 1.5rem;
@@ -257,15 +277,12 @@ const getToolIdLabel = (index: number) => {
   }
 
   .hero-content {
-    padding: 24px;
-    
-    h1 {
-      font-size: 2.5rem;
-    }
+    padding: 24px 16px;
   }
 
   .catalogue-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .app-footer {
@@ -278,6 +295,56 @@ const getToolIdLabel = (index: number) => {
     .footer-nav {
       flex-direction: column;
       gap: 12px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .home-view {
+    padding: 12px;
+    padding-bottom: 48px;
+    gap: 20px;
+  }
+
+  .window-header {
+    padding: 4px 12px;
+  }
+
+  .hero-content {
+    padding: 16px 12px;
+
+    .hero-subtitle {
+      font-size: 0.875rem;
+    }
+  }
+
+  .catalogue-grid {
+    gap: 16px;
+  }
+
+  .card-body {
+    padding: 12px;
+
+    .tool-name {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .tool-description {
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+  }
+
+  .card-footer {
+    padding-top: 12px;
+  }
+
+  .app-footer {
+    padding: 16px 12px;
+
+    .footer-logo {
+      font-size: 1.25rem;
     }
   }
 }
