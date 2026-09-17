@@ -72,10 +72,10 @@ function triggerFileInput() {
  */
 function processImageFile(file: File) {
   uploadError.value = null
-  const validMimeTypes = ['image/png', 'image/jpeg', 'image/webp']
+  const validMimeTypes = ['image/png']
 
   if (!validMimeTypes.includes(file.type)) {
-    uploadError.value = 'FORMAT NON SUPPORTÉ. UTILISEZ PNG, JPEG OU WEBP.'
+    uploadError.value = 'FORMAT NON SUPPORTÉ. SEUL LE FORMAT PNG EST ACCEPTÉ.'
     return
   }
 
@@ -257,7 +257,7 @@ onUnmounted(() => {
           <input
             ref="fileInputRef"
             type="file"
-            accept="image/png, image/jpeg, image/webp"
+            accept="image/png"
             class="hidden-file-input"
             @change="onFileInputChange"
           />
@@ -278,14 +278,10 @@ onUnmounted(() => {
             >
               <span class="dropzone-title">GLISSER-DÉPOSER UNE IMAGE ICI</span>
               <span class="dropzone-sub">OU</span>
-              <button
-                type="button"
-                class="btn-retro btn-browse"
-                @click.stop="triggerFileInput"
-              >
+              <span class="btn-retro btn-browse" aria-hidden="true">
                 CHOISIR UN FICHIER
-              </button>
-              <span class="dropzone-hint">PNG TRANSPARENT RECOMMANDÉ (MAX 10 MO)</span>
+              </span>
+              <span class="dropzone-hint">IMAGE PNG TRANSPARENTE (MAX 10 MO)</span>
             </div>
           </div>
 
@@ -359,6 +355,8 @@ onUnmounted(() => {
   @include window-box;
   width: 100%;
   max-width: 540px;
+  max-height: 95vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background-color: $surface-pc-beige;
@@ -685,6 +683,10 @@ onUnmounted(() => {
   text-align: center;
   box-sizing: border-box;
   transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  & > * {
+    pointer-events: none;
+  }
 
   &:hover,
   &.dragging {
