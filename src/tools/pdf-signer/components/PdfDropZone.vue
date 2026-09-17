@@ -36,7 +36,7 @@ function validateAndEmitFile(file: File) {
   errorMessage.value = null
 
   const isPdfExtension = file.name.toLowerCase().endsWith('.pdf')
-  const isPdfMime = file.type === 'application/pdf' || file.type === ''
+  const isPdfMime = file.type === 'application/pdf'
 
   if (!isPdfExtension && !isPdfMime) {
     errorMessage.value = 'FORMAT NON RECONNU. VEUILLEZ SÉLECTIONNER UN DOCUMENT PDF (.PDF).'

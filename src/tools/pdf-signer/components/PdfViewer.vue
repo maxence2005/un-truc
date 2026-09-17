@@ -7,7 +7,9 @@ interface Props {
   pageCount: number
   pageDimensions?: PageDimension[]
   renderPage: (pageNumber: number, canvas: HTMLCanvasElement, targetWidth?: number) => Promise<any>
+  currentPage?: number
   initialPage?: number
+  mode?: ViewerMode
   initialMode?: ViewerMode
 }
 
@@ -23,14 +25,14 @@ const emit = defineEmits<{
   (e: 'mode-change', mode: ViewerMode): void
 }>()
 
-// Mode d'affichage adaptatif : si pageCount <= 5 -> 'scroll' par défaut, sinon 'paginated'
+// Mode d'affichage adaptatif : props.mode ?? props.initialMode ?? (pageCount <= 5 ? 'scroll' : 'paginated')
 const activeMode = ref<ViewerMode>(
-  props.initialMode ?? (props.pageCount <= 5 ? 'scroll' : 'paginated')
+  props.mode ?? props.initialMode ?? (props.pageCount <= 5 ? 'scroll' : 'paginated')
 )
 
 // Page courante (1-indexée)
 const currentPage = ref<number>(
-  Math.max(1, Math.min(props.initialPage, props.pageCount || 1))
+  Math.max(1, Math.min(props.currentPage ?? props.initialPage ?? 1, props.pageCount || 1))
 )
 
 // Modèle de saisie directe du numéro de page
@@ -38,6 +40,25 @@ const inputPage = ref<number>(currentPage.value)
 
 const scrollContainerRef = ref<HTMLDivElement | null>(null)
 let scrollObserver: IntersectionObserver | null = null
+
+// Synchronisation réactive bidirectionnelle avec currentPage et mode passés en props
+watch(
+  () => props.currentPage,
+  (newPage) => {
+    if (newPage !== undefined && newPage !== currentPage.value) {
+      goToPage(newPage)
+    }
+  }
+)
+
+watch(
+  () => props.mode,
+  (newMode) => {
+    if (newMode !== undefined && newMode !== activeMode.value) {
+      setMode(newMode)
+    }
+  }
+)
 
 /**
  * Dimension de la page courante en mode paginé
@@ -101,10 +122,21 @@ function nextPage() {
 
 /**
  * Valide la valeur saisie manuellement dans le champ numérique de saut direct.
+ * Si le champ est vide ou invalide, revient à la page courante (currentPage.value).
  */
 function handleInputCommit() {
+  if (
+    inputPage.value === null ||
+    inputPage.value === undefined ||
+    isNaN(Number(inputPage.value)) ||
+    String(inputPage.value).trim() === ''
+  ) {
+    inputPage.value = currentPage.value
+    return
+  }
+
   const val = Math.floor(Number(inputPage.value))
-  if (isNaN(val) || val < 1) {
+  if (val < 1) {
     inputPage.value = 1
     goToPage(1)
   } else if (val > props.pageCount) {
@@ -178,7 +210,7 @@ function teardownScrollObserver() {
 watch(
   () => props.pageCount,
   (newCount) => {
-    if (!props.initialMode) {
+    if (!props.mode && !props.initialMode) {
       activeMode.value = newCount <= 5 ? 'scroll' : 'paginated'
       emit('update:mode', activeMode.value)
       emit('mode-change', activeMode.value)

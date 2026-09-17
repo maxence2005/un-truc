@@ -154,6 +154,7 @@ watch(
   position: relative;
   display: flex;
   flex-direction: column;
+  width: 100%;
   background-color: $white;
   box-shadow: 4px 4px 0px 0px $black;
   border: $border-width solid $black;
