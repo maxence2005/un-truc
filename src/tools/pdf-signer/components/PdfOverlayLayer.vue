@@ -58,7 +58,7 @@ const pageAnnotations = computed(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
   z-index: 2;
 
   & > * {
