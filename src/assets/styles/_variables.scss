@@ -13,3 +13,11 @@ $font-family-main: 'Courier Prime', 'Courier New', Courier, monospace;
 $window-shadow-size: 6px;
 $input-shadow-size: 3px;
 $border-width: 2px;
+
+// Breakpoints
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+
+// Touch targets
+$min-touch-target: 44px;
